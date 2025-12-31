@@ -1,10 +1,15 @@
 import os
 import json
-import google.generativeai as genai
+from google.genai import Client
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# Lazy initialization - client will be created when first needed
+_client = None
 
-model = genai.GenerativeModel("gemini-1.5-flash")
+def get_client():
+    global _client
+    if _client is None:
+        _client = Client(api_key=os.getenv("GEMINI_API_KEY"))
+    return _client
 
 SYSTEM_PROMPT = """
 You are an intent extractor for a movie recommendation system.
@@ -14,15 +19,19 @@ Return ONLY valid JSON.
 
 JSON format:
 {
-  "intent": "recommend_movie | other",
-  "genres": [],
-  "mood": null
+    "intent": "recommend_movie | other",
+    "genres": [],
+    "mood": null,
+    "title": null,
+    "search_query": null
 }
 
 Examples:
 - "I want a thriller movie" → {"intent": "recommend_movie", "genres": ["thriller"], "mood": null}
 - "Something scary" → {"intent": "recommend_movie", "genres": ["horror"], "mood": "scary"}
 - "Hello" → {"intent": "other", "genres": [], "mood": null}
+- "Find The Matrix" → {"intent": "recommend_movie", "genres": [], "mood": null, "title": "The Matrix", "search_query": "The Matrix"}
+- "Any good comedy like Groundhog Day?" → {"intent": "recommend_movie", "genres": ["comedy"], "mood": null, "title": "Groundhog Day", "search_query": "Groundhog Day"}
 """
 
 def parse_intent(message: str):
@@ -36,8 +45,10 @@ def parse_intent(message: str):
         dict: Parsed intent with genres and mood
     """
     try:
-        response = model.generate_content(
-            SYSTEM_PROMPT + "\nUser message: " + message
+        client = get_client()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=SYSTEM_PROMPT + "\nUser message: " + message
         )
         
         # Extract JSON from response (handle markdown code blocks)
