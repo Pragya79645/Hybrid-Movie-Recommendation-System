@@ -1,0 +1,34 @@
+# Core Python
+numpy
+pandas
+scipy
+
+# Machine Learning
+scikit-learn
+joblib
+
+# Recommendation / Matrix Factorization
+
+
+# Vector Search
+faiss-cpu
+
+# Embeddings
+sentence-transformers
+torch
+
+# RAG / LLM
+langchain
+langchain-community
+transformers
+
+# Backend API
+fastapi
+uvicorn
+
+# Utilities
+tqdm
+python-dotenv
+
+# Optional (frontend/backend communication)
+requests
