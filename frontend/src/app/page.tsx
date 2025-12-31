@@ -22,11 +22,11 @@ export default function Home() {
       
       if (preferences && preferences.genres) {
         // Get custom recommendations based on preferences
-        response = await getCustomRecommendations(preferences, 10);
+        response = await getCustomRecommendations(preferences, 20);
         setRecommendations(response.recommendations);
       } else {
         // Get recommendations for user or anonymous
-        response = await getRecommendations(userId, 10);
+        response = await getRecommendations(userId, 20);
         setRecommendations(response.recommendations);
       }
       
