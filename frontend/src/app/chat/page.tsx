@@ -5,11 +5,10 @@ import ChatBox from '@/components/ChatBox';
 import Link from 'next/link';
 
 export default function ChatPage() {
-  const [userId, setUserId] = useState<number | undefined>(undefined);
+  const [userId, setUserId] = useState<string>('');
 
   const handleUserIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setUserId(value ? parseInt(value) : undefined);
+    setUserId(e.target.value);
   };
 
   return (
@@ -33,11 +32,11 @@ export default function ChatPage() {
                 </label>
                 <input
                   id="userId"
-                  type="number"
-                  value={userId || ''}
+                  type="text"
+                  value={userId}
                   onChange={handleUserIdChange}
-                  placeholder="Optional"
-                  className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., user123"
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <Link
@@ -54,7 +53,7 @@ export default function ChatPage() {
       {/* Chat Container */}
       <main className="flex-1 flex flex-col max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg flex-1 flex flex-col overflow-hidden">
-          <ChatBox userId={userId} />
+          <ChatBox userId={userId || undefined} />
         </div>
       </main>
 

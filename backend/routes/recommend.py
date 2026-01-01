@@ -8,7 +8,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from src.inference.recommend import recommend, mf_model
-from src.profiles.profile_manager import build_user_profile, apply_profile_boost
+from src.profiles.profile_manager import build_user_profile, apply_profile_boost, get_user_profile
 import numpy as np
 import json
 
@@ -18,58 +18,39 @@ class CustomPreferences(BaseModel):
     liked_movies: Optional[list[int]] = None
     genres: Optional[Dict[str, float]] = None
 
-def load_user_profiles():
-    """Load saved user profiles from JSON file"""
-    profile_path = "profiles/user_profiles.json"
-    if os.path.exists(profile_path):
-        with open(profile_path, 'r') as f:
-            return json.load(f)
-    return {}
-
 @router.get("/recommend")
 def get_recommendations(
-    user_id: Optional[int] = Query(None, description="User ID for personalized recommendations"),
+    user_id: Optional[str] = Query(None, description="User ID for personalized recommendations"),
     top_k: int = Query(5, description="Number of recommendations to return")
 ):
-    """Get recommendations for a specific user or anonymous user"""
+    """Get personalized recommendations for a user"""
     
     # Generate base user vector
     user_vector = np.random.rand(mf_model.n_components)
     
-    # Get base recommendations
-    recs = recommend(user_vector, top_k=top_k * 2)  # Get more to allow for filtering
+    # Get base recommendations (get more to allow for re-ranking)
+    recs = recommend(user_vector, top_k=top_k * 3)
     
     # Try to apply user profile if user_id is provided
     profile = None
     profile_applied = False
     
     if user_id is not None:
-        # Try to load from saved profiles first
-        user_profiles = load_user_profiles()
-        if str(user_id) in user_profiles:
-            profile = user_profiles[str(user_id)]
+        # Load user profile from saved profiles
+        profile = get_user_profile(user_id)
+        if profile and profile.get("genre_weights"):
             profile_applied = True
-        else:
-            # Try to build from interaction history
-            try:
-                profile = build_user_profile(user_id)
-                if profile:
-                    profile_applied = True
-            except:
-                pass
-    
-    # Apply profile boost if available
-    if profile:
-        recs = apply_profile_boost(recs, profile)
+            # Apply personalized scoring: base_score + user_genre_weight
+            recs = apply_profile_boost(recs, profile, boost_multiplier=2.0)
     
     # Return top_k recommendations
     recs = recs.head(top_k)
     
     return {
         "user_id": user_id,
-        "recommendations": recs[["title", "genres"]].to_dict(orient="records"),
-        "profile_applied": profile_applied,
-        "profile": profile if profile_applied else None
+        "recommendations": recs[["movie_id", "title", "genres"]].to_dict(orient="records"),
+        "personalized": profile_applied,
+        "profile": profile.get("genre_weights") if profile else None
     }
 
 @router.post("/recommend/custom")
@@ -95,6 +76,6 @@ def get_custom_recommendations(
     recs = recs.head(top_k)
     
     return {
-        "recommendations": recs[["title", "genres"]].to_dict(orient="records"),
+        "recommendations": recs[["movie_id", "title", "genres"]].to_dict(orient="records"),
         "custom_profile": custom_profile
     }

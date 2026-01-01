@@ -3,15 +3,16 @@ import axios from 'axios';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export interface Movie {
+  movie_id: number;
   title: string;
   genres: string;
   explanation?: string;
 }
 
 export interface RecommendationResponse {
-  user_id: number | null;
+  user_id: string | null;
   recommendations: Movie[];
-  profile_applied: boolean;
+  personalized: boolean;
   profile?: Record<string, number>;
 }
 
@@ -23,6 +24,21 @@ export interface CustomPreferences {
 export interface CustomRecommendationResponse {
   recommendations: Movie[];
   custom_profile?: Record<string, number>;
+}
+
+export interface InteractionRequest {
+  user_id: string;
+  movie_id: number;
+  genres: string[];
+}
+
+export interface InteractionResponse {
+  success: boolean;
+  user_id: string;
+  updated_profile: {
+    genre_weights: Record<string, number>;
+    interaction_count: number;
+  };
 }
 
 export interface ChatMessage {
@@ -37,7 +53,7 @@ export interface ChatResponse {
 
 // Get recommendations for a specific user or anonymous
 export const getRecommendations = async (
-  userId?: number,
+  userId?: string,
   topK: number = 5
 ): Promise<RecommendationResponse> => {
   try {
@@ -50,6 +66,25 @@ export const getRecommendations = async (
     return response.data;
   } catch (error) {
     console.error('Error fetching recommendations:', error);
+    throw error;
+  }
+};
+
+// Track user interaction with a movie
+export const trackInteraction = async (
+  userId: string,
+  movieId: number,
+  genres: string[]
+): Promise<InteractionResponse> => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/interact`, {
+      user_id: userId,
+      movie_id: movieId,
+      genres: genres
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error tracking interaction:', error);
     throw error;
   }
 };
@@ -75,7 +110,7 @@ export const getCustomRecommendations = async (
 // Send chat message and get response
 export const sendChatMessage = async (
   message: string,
-  userId?: number
+  userId?: string
 ): Promise<ChatResponse> => {
   try {
     const params: any = {};

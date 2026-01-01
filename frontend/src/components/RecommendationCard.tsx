@@ -1,16 +1,41 @@
 import React from 'react';
-import { Movie } from '@/services/api';
+import { Movie, trackInteraction } from '@/services/api';
 
 interface RecommendationCardProps {
   movie: Movie;
   rank?: number;
+  userId?: string;
+  movieId?: number;
 }
 
-export default function RecommendationCard({ movie, rank }: RecommendationCardProps) {
+export default function RecommendationCard({ movie, rank, userId, movieId }: RecommendationCardProps) {
   const genres = movie.genres ? movie.genres.split('|').filter(g => g.trim()) : [];
 
+  const handleCardClick = async () => {
+    console.log('Card clicked!', { userId, movieId, hasUserId: !!userId, hasMovieId: !!movieId });
+    
+    // Track interaction if userId and movieId are provided
+    if (userId && movieId) {
+      try {
+        console.log('Tracking interaction...', { userId, movieId, genres });
+        await trackInteraction(userId, movieId, genres);
+        console.log('✅ Interaction tracked for user:', userId);
+      } catch (error) {
+        console.error('❌ Failed to track interaction:', error);
+      }
+    } else {
+      console.log('⚠️ Not tracking - missing:', { 
+        userId: userId || 'NO USER ID', 
+        movieId: movieId || 'NO MOVIE ID' 
+      });
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border border-gray-200">
+    <div 
+      className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border border-gray-200 cursor-pointer"
+      onClick={handleCardClick}
+    >
       {rank && (
         <div className="flex items-center justify-between mb-3">
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm">

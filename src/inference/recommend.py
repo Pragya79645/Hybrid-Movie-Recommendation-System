@@ -12,7 +12,7 @@ faiss_index = faiss.read_index("embeddings/faiss_index/items.index")
 def recommend(user_vector, top_k=5):
     scores = mf_model.components_.T @ user_vector
     top_idx = np.argsort(scores)[-top_k:][::-1]
-    return movies.iloc[top_idx][["title", "genres"]]
+    return movies.iloc[top_idx][["movie_id", "title", "genres"]]
 
 if __name__ == "__main__":
     dummy_user_vector = np.random.rand(mf_model.n_components)

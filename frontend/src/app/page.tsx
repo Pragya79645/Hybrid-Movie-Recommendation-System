@@ -10,7 +10,7 @@ export default function Home() {
   const [showPreferences, setShowPreferences] = useState(true);
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<Movie[]>([]);
-  const [userId, setUserId] = useState<number | undefined>(undefined);
+  const [userId, setUserId] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   const fetchRecommendations = async (preferences?: { genres: Record<string, number> }) => {
@@ -26,7 +26,7 @@ export default function Home() {
         setRecommendations(response.recommendations);
       } else {
         // Get recommendations for user or anonymous
-        response = await getRecommendations(userId, 20);
+        response = await getRecommendations(userId || undefined, 20);
         setRecommendations(response.recommendations);
       }
       
@@ -54,8 +54,7 @@ export default function Home() {
   };
 
   const handleUserIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setUserId(value ? parseInt(value) : undefined);
+    setUserId(e.target.value);
   };
 
   return (
@@ -79,11 +78,11 @@ export default function Home() {
                 </label>
                 <input
                   id="userId"
-                  type="number"
-                  value={userId || ''}
+                  type="text"
+                  value={userId}
                   onChange={handleUserIdChange}
-                  placeholder="Optional"
-                  className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., user123"
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <Link
@@ -152,6 +151,8 @@ export default function Home() {
                   key={`${movie.title}-${index}`}
                   movie={movie}
                   rank={index + 1}
+                  userId={userId || undefined}
+                  movieId={movie.movie_id}
                 />
               ))}
             </div>

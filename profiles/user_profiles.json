@@ -1,0 +1,93 @@
+{
+  "alice": {
+    "genre_weights": {
+      "Sci-Fi": 0.42466084948895233,
+      "Thriller": 0.2907355099857069,
+      "Action": 0.2685714602678334,
+      "Drama": 0.01603218025750728
+    },
+    "interaction_count": 11,
+    "last_interaction": {
+      "movie_id": 2,
+      "genres": [
+        "Sci-Fi",
+        "Action"
+      ]
+    }
+  },
+  "bob": {
+    "genre_weights": {
+      "Crime": 0.4506329113924051,
+      "Drama": 0.39746835443037976,
+      "Thriller": 0.1518987341772152
+    },
+    "interaction_count": 3,
+    "last_interaction": {
+      "movie_id": 12,
+      "genres": [
+        "Crime",
+        "Drama"
+      ]
+    }
+  },
+  "user12": {
+    "genre_weights": {
+      "Action": 0.5,
+      "Comedy": 0.5
+    },
+    "interaction_count": 1,
+    "last_interaction": {
+      "movie_id": 485,
+      "genres": [
+        "Action",
+        "Comedy"
+      ]
+    }
+  },
+  "user14": {
+    "genre_weights": {
+      "Action": 0.5,
+      "Comedy": 0.5
+    },
+    "interaction_count": 1,
+    "last_interaction": {
+      "movie_id": 100,
+      "genres": [
+        "Action",
+        "Comedy"
+      ]
+    }
+  },
+  "myuserrr": {
+    "genre_weights": {
+      "Drama": 0.33333333333333337,
+      "Romance": 0.33333333333333337,
+      "War": 0.33333333333333337
+    },
+    "interaction_count": 1,
+    "last_interaction": {
+      "movie_id": 151,
+      "genres": [
+        "Drama",
+        "Romance",
+        "War"
+      ]
+    }
+  },
+  "new": {
+    "genre_weights": {
+      "Horror": 0.16604400166044,
+      "Drama": 0.41511000415110005,
+      "Documentary": 0.24906600249066005,
+      "Romance": 0.07887090078870902,
+      "Comedy": 0.09090909090909091
+    },
+    "interaction_count": 12,
+    "last_interaction": {
+      "movie_id": 298,
+      "genres": [
+        "Comedy"
+      ]
+    }
+  }
+}

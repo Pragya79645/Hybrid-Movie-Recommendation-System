@@ -5,7 +5,7 @@ import { sendChatMessage, ChatMessage, Movie } from '@/services/api';
 import RecommendationCard from './RecommendationCard';
 
 interface ChatBoxProps {
-  userId?: number;
+  userId?: string;
 }
 
 export default function ChatBox({ userId }: ChatBoxProps) {
@@ -112,7 +112,12 @@ export default function ChatBox({ userId }: ChatBoxProps) {
           <h3 className="font-semibold text-gray-800 mb-3">Recommended Movies:</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
             {recommendations.map((movie, index) => (
-              <RecommendationCard key={`${movie.title}-${index}`} movie={movie} />
+              <RecommendationCard 
+                key={`${movie.title}-${index}`} 
+                movie={movie}
+                userId={userId}
+                movieId={movie.movie_id}
+              />
             ))}
           </div>
         </div>

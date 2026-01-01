@@ -3,19 +3,14 @@ from pydantic import BaseModel
 from typing import Optional
 import sys
 import os
-import numpy as np
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from src.rag.intent_parser import parse_intent
-from src.inference.recommend import recommend
-from src.profiles.profile_manager import apply_profile_boost
-import joblib
-import re
-
-# Load movies dataset for title/search matching
-movies = joblib.load("embeddings/faiss_index/movies.pkl")
+from src.rag.retriever import retrieve_movies, filter_by_genre, filter_by_exclusions, filter_by_year
+from src.rag.explainer import generate_explanations, generate_chat_response
+from src.profiles.profile_manager import apply_profile_boost, get_user_profile
 
 router = APIRouter()
 
@@ -25,66 +20,111 @@ class ChatRequest(BaseModel):
 @router.post("/chat")
 def chat_endpoint(
     request: ChatRequest,
-    user_id: Optional[int] = Query(None, description="User ID for context")
+    user_id: Optional[str] = Query(None, description="User ID for personalization")
 ):
-    """Chat with the movie recommendation assistant using Gemini for intent extraction"""
+    """
+    Intelligent chat endpoint for movie recommendations.
     
-    # Parse user intent and preferences using Gemini
-    parsed = parse_intent(request.message)
-
-    # If Gemini didn't detect a recommend intent, return a helpful prompt
-    if parsed.get("intent") != "recommend_movie":
+    Flow:
+    1. Extract intent from user message (Gemini)
+    2. Retrieve candidates using FAISS semantic search
+    3. Filter by constraints (genre, exclusions, year)
+    4. Re-rank using user profile if available
+    5. Generate explanations (Gemini)
+    """
+    
+    # Step 1: Parse intent using Gemini
+    print(f"🔍 Parsing intent from: {request.message}")
+    intent = parse_intent(request.message)
+    print(f"📋 Intent: {intent}")
+    
+    # If not a recommendation request, return helpful message
+    if intent.get("intent") != "recommend_movie":
         return {
-            "response": "I can help you find movies you'll enjoy! 😊 Tell me what kind of movies you like.",
+            "response": "I can help you find movies you'll enjoy! 😊 Tell me what kind of movies you like, or describe the mood you're in.",
             "recommendations": []
         }
-
-    # If an exact title or search_query was extracted, try to find matching movie(s)
-    search_text = parsed.get("title") or parsed.get("search_query")
-    if search_text:
-        q = str(search_text).strip().lower()
-        # Normalize text for more robust matching (handles variants like "Matrix, The (1999)")
-        def normalize_text(s: str) -> str:
-            return re.sub(r'[^a-z0-9\s]', '', str(s).lower()).strip()
-
-        q_norm = normalize_text(q)
-        title_norms = movies['title'].fillna('').apply(normalize_text)
-
-        # Match when normalized title contains the normalized query OR all query words appear in title
-        mask = title_norms.str.contains(q_norm, na=False) | title_norms.apply(lambda t: all(w in t.split() for w in q_norm.split()))
-        matches = movies[mask]
-        if not matches.empty:
-            # Apply any genre-based boosts
-            if parsed.get("genres"):
-                profile = {g: 1.0 for g in parsed.get("genres", [])}
-                matches = apply_profile_boost(matches, profile)
-
-            response = f"Here are matches for \"{search_text}\" you might be looking for 🎬"
-            return {
-                "response": response,
-                "recommendations": matches.head(10).to_dict(orient="records")
-            }
-
-    # Build temporary profile from extracted preferences
-    profile = {genre: 1.0 for genre in parsed.get("genres", [])}
-
-    # Generate user vector (dummy for now, can be enhanced with user_id later)
-    user_vector = np.random.rand(50)
-
-    # Get recommendations from the recommendation engine
-    recs = recommend(user_vector)
-
-    # Apply profile boost based on extracted preferences
-    if profile:
-        recs = apply_profile_boost(recs, profile)
-
-    # Build natural language response
-    genre_text = ", ".join(parsed.get("genres", [])) if parsed.get("genres") else "great"
-    mood_text = f" with a {parsed.get('mood')} mood" if parsed.get("mood") else ""
-
-    response = f"Here are some {genre_text} movies{mood_text} you might like 🎬"
-
+    
+    # Step 2: Retrieve candidates using FAISS
+    # Build query from genres and mood
+    query_parts = []
+    if intent.get("genres"):
+        query_parts.extend(intent["genres"])
+    if intent.get("mood"):
+        query_parts.append(intent["mood"])
+    
+    search_query = " ".join(query_parts) if query_parts else "movie"
+    
+    print(f"🔎 FAISS search query: {search_query}")
+    candidates = retrieve_movies(
+        query=search_query,
+        genres=intent.get("genres"),
+        top_k=100  # Get many candidates for filtering
+    )
+    print(f"📦 Retrieved {len(candidates)} candidates from FAISS")
+    
+    # Step 3: Apply filters
+    # Filter by genre (strict matching)
+    if intent.get("genres"):
+        candidates = filter_by_genre(candidates, intent["genres"])
+        print(f"🎭 After genre filter: {len(candidates)} movies")
+    
+    # Filter by exclusions (remove unwanted content)
+    if intent.get("exclude_tags"):
+        candidates = filter_by_exclusions(candidates, intent["exclude_tags"])
+        print(f"🚫 After exclusion filter: {len(candidates)} movies")
+    
+    # Filter by year constraints
+    if intent.get("min_year") or intent.get("max_year"):
+        candidates = filter_by_year(
+            candidates,
+            min_year=intent.get("min_year"),
+            max_year=intent.get("max_year")
+        )
+        print(f"📅 After year filter: {len(candidates)} movies")
+    
+    if candidates.empty:
+        return {
+            "response": "I couldn't find any movies matching your criteria. Try being less specific or adjusting your preferences!",
+            "recommendations": []
+        }
+    
+    # Step 4: Re-rank using user profile if available
+    if user_id:
+        profile = get_user_profile(user_id)
+        if profile and profile.get("genre_weights"):
+            print(f"👤 Applying personalization for user: {user_id}")
+            candidates = apply_profile_boost(candidates, profile, boost_multiplier=1.5)
+        else:
+            # Sort by similarity score from FAISS
+            candidates = candidates.sort_values("similarity_score", ascending=False)
+    else:
+        # Sort by similarity score from FAISS
+        candidates = candidates.sort_values("similarity_score", ascending=False)
+    
+    # Get top recommendations
+    top_k = 10
+    recommendations = candidates.head(top_k)
+    
+    print(f"⭐ Final recommendations: {len(recommendations)} movies")
+    
+    # Step 5: Generate explanations using Gemini
+    recs_list = recommendations.to_dict(orient="records")
+    recs_with_explanations = generate_explanations(
+        movies=recs_list,
+        user_query=request.message,
+        intent=intent,
+        max_movies=5  # Explain top 5
+    )
+    
+    # Generate chat response
+    response_text = generate_chat_response(
+        user_query=request.message,
+        intent=intent,
+        num_recommendations=len(recs_with_explanations)
+    )
+    
     return {
-        "response": response,
-        "recommendations": recs.head(10).to_dict(orient="records") if hasattr(recs, 'to_dict') else []
+        "response": response_text,
+        "recommendations": recs_with_explanations
     }
