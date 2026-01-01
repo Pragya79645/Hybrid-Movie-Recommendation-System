@@ -86,10 +86,16 @@ export default function Home() {
                 />
               </div>
               <Link
+                href="/search"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+              >
+                🔍 Search Movies
+              </Link>
+              <Link
                 href="/chat"
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
               >
-                Chat Assistant
+                💬 Chat Assistant
               </Link>
               {!showPreferences && (
                 <button

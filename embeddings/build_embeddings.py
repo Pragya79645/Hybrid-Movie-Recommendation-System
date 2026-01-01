@@ -1,19 +1,17 @@
-import pandas as pd
 import faiss
-from sentence_transformers import SentenceTransformer
-import numpy as np
 import joblib
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
-movies = pd.read_csv("data/processed/items.csv")
-movies["text"] = movies["title"] + " " + movies["genres"]
+# Load index + metadata
+index = faiss.read_index("embeddings/faiss_index/items.index")
+movies = joblib.load("embeddings/faiss_index/movies.pkl")
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
-embeddings = model.encode(movies["text"].tolist(), show_progress_bar=True)
 
-dimension = embeddings.shape[1]
-index = faiss.IndexFlatL2(dimension)
-index.add(np.array(embeddings))
+def search_similar_movies(query, top_k=10):
+    query_vec = model.encode([query])
+    distances, indices = index.search(np.array(query_vec), top_k)
 
-faiss.write_index(index, "embeddings/faiss_index/items.index")
-joblib.dump(movies, "embeddings/faiss_index/movies.pkl")
-print("FAISS index saved!")
+    results = movies.iloc[indices[0]][["title", "genres"]]
+    return results

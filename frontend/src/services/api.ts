@@ -51,6 +51,31 @@ export interface ChatResponse {
   recommendations?: Movie[];
 }
 
+export interface SimilarMovie {
+  movie_id: number;
+  title: string;
+  genres: string;
+  similarity_score: number;
+}
+
+export interface SearchResponse {
+  query_movie: string;
+  similar_movies: SimilarMovie[];
+  total_results: number;
+}
+
+export interface MovieSuggestion {
+  movie_id: number;
+  title: string;
+  genres: string;
+}
+
+export interface AutocompleteResponse {
+  query: string;
+  suggestions: MovieSuggestion[];
+  count: number;
+}
+
 // Get recommendations for a specific user or anonymous
 export const getRecommendations = async (
   userId?: string,
@@ -126,6 +151,38 @@ export const sendChatMessage = async (
     return response.data;
   } catch (error) {
     console.error('Error sending chat message:', error);
+    throw error;
+  }
+};
+
+// Search for similar movies using FAISS
+export const searchSimilarMovies = async (
+  movieName: string,
+  topK: number = 10
+): Promise<SearchResponse> => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/search/similar`, {
+      params: { movie_name: movieName, top_k: topK }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching for similar movies:', error);
+    throw error;
+  }
+};
+
+// Get autocomplete suggestions for movie titles
+export const getMovieAutocomplete = async (
+  query: string,
+  limit: number = 10
+): Promise<AutocompleteResponse> => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/search/autocomplete`, {
+      params: { query, limit }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching autocomplete suggestions:', error);
     throw error;
   }
 };

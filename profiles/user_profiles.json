@@ -89,5 +89,55 @@
         "Comedy"
       ]
     }
+  },
+  "1234": {
+    "genre_weights": {
+      "Action": 0.7692307692307692,
+      "Drama": 0.23076923076923075
+    },
+    "interaction_count": 2,
+    "last_interaction": {
+      "movie_id": 354,
+      "genres": [
+        "Drama"
+      ]
+    }
+  },
+  "12345": {
+    "genre_weights": {
+      "Action": 0.15873015873015875,
+      "Drama": 0.15873015873015875,
+      "Mystery": 0.25396825396825395,
+      "Crime": 0.14285714285714285,
+      "Horror": 0.14285714285714285,
+      "Thriller": 0.14285714285714285
+    },
+    "interaction_count": 2,
+    "last_interaction": {
+      "movie_id": 1645,
+      "genres": [
+        "Crime",
+        "Horror",
+        "Mystery",
+        "Thriller"
+      ]
+    }
+  },
+  "user": {
+    "genre_weights": {
+      "Drama": 0.5023041474654378,
+      "Crime": 0.1382488479262673,
+      "Action": 0.17972350230414746,
+      "Mystery": 0.17972350230414746
+    },
+    "interaction_count": 3,
+    "last_interaction": {
+      "movie_id": 517,
+      "genres": [
+        "Action",
+        "Drama",
+        "Mystery"
+      ]
+    }
   }
 }

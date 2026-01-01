@@ -40,10 +40,16 @@ export default function ChatPage() {
                 />
               </div>
               <Link
+                href="/search"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+              >
+                🔍 Search Movies
+              </Link>
+              <Link
                 href="/"
                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
               >
-                Browse Movies
+                🏠 Home
               </Link>
             </div>
           </div>

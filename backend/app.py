@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.routes.recommend import router
 from backend.routes.chat import router as chat_router
 from backend.routes.interact import router as interact_router
+from backend.routes.search import router as search_router
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -23,6 +24,7 @@ app.add_middleware(
 app.include_router(router)
 app.include_router(chat_router)
 app.include_router(interact_router)
+app.include_router(search_router)
 
 @app.get("/")
 def root():
