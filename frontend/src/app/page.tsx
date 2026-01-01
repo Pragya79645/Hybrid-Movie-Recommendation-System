@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PreferenceForm from '@/components/PreferenceForm';
 import RecommendationCard from '@/components/RecommendationCard';
-import { getRecommendations, getCustomRecommendations, Movie } from '@/services/api';
+import { getRecommendations, getCustomRecommendations, Movie, getUserId } from '@/services/api';
 
 export default function Home() {
   const [showPreferences, setShowPreferences] = useState(true);
@@ -12,6 +12,12 @@ export default function Home() {
   const [recommendations, setRecommendations] = useState<Movie[]>([]);
   const [userId, setUserId] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize user ID on component mount
+  useEffect(() => {
+    const id = getUserId();
+    setUserId(id);
+  }, []);
 
   const fetchRecommendations = async (preferences?: { genres: Record<string, number> }) => {
     setLoading(true);
@@ -25,8 +31,8 @@ export default function Home() {
         response = await getCustomRecommendations(preferences, 20);
         setRecommendations(response.recommendations);
       } else {
-        // Get recommendations for user or anonymous
-        response = await getRecommendations(userId || undefined, 20);
+        // Get recommendations for user (getUserId is called automatically in the API)
+        response = await getRecommendations(userId, 20);
         setRecommendations(response.recommendations);
       }
       
@@ -53,10 +59,6 @@ export default function Home() {
     setError(null);
   };
 
-  const handleUserIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserId(e.target.value);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
@@ -72,18 +74,13 @@ export default function Home() {
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <label htmlFor="userId" className="text-sm font-medium text-gray-700">
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <span className="text-sm font-medium text-gray-700">
                   User ID:
-                </label>
-                <input
-                  id="userId"
-                  type="text"
-                  value={userId}
-                  onChange={handleUserIdChange}
-                  placeholder="e.g., user123"
-                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                </span>
+                <span className="text-sm text-gray-900 font-mono">
+                  {userId || 'Loading...'}
+                </span>
               </div>
               <Link
                 href="/search"
@@ -157,7 +154,7 @@ export default function Home() {
                   key={`${movie.title}-${index}`}
                   movie={movie}
                   rank={index + 1}
-                  userId={userId || undefined}
+                  userId={userId}
                   movieId={movie.movie_id}
                 />
               ))}

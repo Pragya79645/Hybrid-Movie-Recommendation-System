@@ -99,13 +99,21 @@ def search_similar_movies(
         distances, indices = index.search(np.array(query_embedding, dtype=np.float32), top_k + 1)
         
         # Step 4: Return movie metadata
-        similar_movies = []
+        # First, add the searched movie itself with 100% similarity
+        similar_movies = [SimilarMovie(
+            movie_id=int(query_movie['movie_id']),
+            title=query_movie['title'],
+            genres=query_movie['genres'],
+            similarity_score=1.0000
+        )]
+        
+        # Then add similar movies
         for i, (idx, distance) in enumerate(zip(indices[0], distances[0])):
-            # Skip the query movie itself
+            # Skip the query movie itself (it's already added as first result)
             if idx == query_movie_idx:
                 continue
             
-            if len(similar_movies) >= top_k:
+            if len(similar_movies) > top_k:
                 break
             
             movie = movies.iloc[idx]

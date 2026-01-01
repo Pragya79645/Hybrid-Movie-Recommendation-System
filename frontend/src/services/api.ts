@@ -2,6 +2,48 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// User ID Management
+const USER_ID_KEY = 'movie_app_user_id';
+
+/**
+ * Generate a unique user ID
+ */
+const generateUserId = (): string => {
+  return `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+};
+
+/**
+ * Get or create user ID from localStorage
+ * This ensures the user ID persists across page refreshes
+ */
+export const getUserId = (): string => {
+  if (typeof window === 'undefined') {
+    // Server-side rendering fallback
+    return generateUserId();
+  }
+  
+  let userId = localStorage.getItem(USER_ID_KEY);
+  
+  if (!userId) {
+    userId = generateUserId();
+    localStorage.setItem(USER_ID_KEY, userId);
+    console.log('✨ Generated new user ID:', userId);
+  } else {
+    console.log('👤 Using existing user ID:', userId);
+  }
+  
+  return userId;
+};
+
+/**
+ * Clear user ID (for testing/logout)
+ */
+export const clearUserId = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(USER_ID_KEY);
+  }
+};
+
 export interface Movie {
   movie_id: number;
   title: string;
@@ -82,12 +124,15 @@ export const getRecommendations = async (
   topK: number = 5
 ): Promise<RecommendationResponse> => {
   try {
-    const params: any = { top_k: topK };
-    if (userId !== undefined) {
-      params.user_id = userId;
-    }
+    // Always use a user ID (either provided or from localStorage)
+    const effectiveUserId = userId || getUserId();
     
-    const response = await axios.get(`${API_BASE_URL}/recommend`, { params });
+    const response = await axios.get(`${API_BASE_URL}/recommend`, {
+      params: {
+        top_k: topK,
+        user_id: effectiveUserId
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching recommendations:', error);
@@ -97,13 +142,16 @@ export const getRecommendations = async (
 
 // Track user interaction with a movie
 export const trackInteraction = async (
-  userId: string,
+  userId: string | undefined,
   movieId: number,
   genres: string[]
 ): Promise<InteractionResponse> => {
   try {
+    // Always use a user ID (either provided or from localStorage)
+    const effectiveUserId = userId || getUserId();
+    
     const response = await axios.post(`${API_BASE_URL}/interact`, {
-      user_id: userId,
+      user_id: effectiveUserId,
       movie_id: movieId,
       genres: genres
     });
@@ -138,15 +186,13 @@ export const sendChatMessage = async (
   userId?: string
 ): Promise<ChatResponse> => {
   try {
-    const params: any = {};
-    if (userId !== undefined) {
-      params.user_id = userId;
-    }
+    // Always use a user ID (either provided or from localStorage)
+    const effectiveUserId = userId || getUserId();
     
     const response = await axios.post(
       `${API_BASE_URL}/chat`,
       { message },
-      { params }
+      { params: { user_id: effectiveUserId } }
     );
     return response.data;
   } catch (error) {

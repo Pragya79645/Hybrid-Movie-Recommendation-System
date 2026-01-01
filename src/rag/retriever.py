@@ -160,6 +160,9 @@ def filter_by_year(
     
     filtered = movies_df.copy()
     
+    # Ensure year is numeric and filter out NaN values
+    filtered = filtered[filtered['year'].notna()]
+    
     if min_year is not None:
         filtered = filtered[filtered['year'] >= min_year]
     

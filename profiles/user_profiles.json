@@ -46,15 +46,20 @@
   },
   "user14": {
     "genre_weights": {
-      "Action": 0.5,
-      "Comedy": 0.5
+      "Action": 0.07231346526746883,
+      "Comedy": 0.0010682724870943537,
+      "Children's": 0.000349837691549646,
+      "Sci-Fi": 0.0005004200022601456,
+      "Romance": 0.0722837532048061,
+      "Thriller": 0.4369496591297806,
+      "Mystery": 0.41653459221704026
     },
-    "interaction_count": 1,
+    "interaction_count": 32,
     "last_interaction": {
-      "movie_id": 100,
+      "movie_id": 335,
       "genres": [
-        "Action",
-        "Comedy"
+        "Mystery",
+        "Thriller"
       ]
     }
   },
@@ -137,6 +142,48 @@
         "Action",
         "Drama",
         "Mystery"
+      ]
+    }
+  },
+  "test_user_1767288935": {
+    "genre_weights": {
+      "Sci-Fi": 0.06595435958316846,
+      "Action": 0.06595435958316846,
+      "Adventure": 0.18071494525788157,
+      "Animation": 0.0593589236248516,
+      "Children": 0.0593589236248516,
+      "Fantasy": 0.10684606252473289,
+      "Romance": 0.26830233478432924,
+      "Comedy": 0.19351009101701622
+    },
+    "interaction_count": 4,
+    "last_interaction": {
+      "movie_id": 3,
+      "genres": [
+        "Comedy",
+        "Romance"
+      ]
+    }
+  },
+  "user_1767289055275_yw7cht35s": {
+    "genre_weights": {
+      "Crime": 0.07194658685391965,
+      "Horror": 0.07194658685391965,
+      "Mystery": 0.07194658685391965,
+      "Thriller": 0.07194658685391965,
+      "Action": 0.17805341314608036,
+      "Adventure": 0.17805341314608036,
+      "Fantasy": 0.17805341314608036,
+      "Sci-Fi": 0.17805341314608036
+    },
+    "interaction_count": 14,
+    "last_interaction": {
+      "movie_id": 260,
+      "genres": [
+        "Action",
+        "Adventure",
+        "Fantasy",
+        "Sci-Fi"
       ]
     }
   }
