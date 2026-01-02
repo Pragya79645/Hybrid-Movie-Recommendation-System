@@ -21,6 +21,7 @@ torch
 langchain
 langchain-community
 transformers
+google-generativeai
 
 # Backend API
 fastapi
