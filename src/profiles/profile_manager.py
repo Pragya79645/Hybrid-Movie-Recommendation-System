@@ -3,8 +3,12 @@ import json
 import os
 from typing import List, Dict
 from collections import defaultdict
+from pathlib import Path
 
-PROFILE_PATH = "profiles/user_profiles.json"
+# Get project root directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
+PROFILE_PATH = str(PROJECT_ROOT / "profiles" / "user_profiles.json")
 
 def load_profiles() -> Dict:
     """Load all user profiles from JSON file"""
@@ -85,8 +89,13 @@ def get_user_profile(user_id: str) -> Dict:
     profiles = load_profiles()
     return profiles.get(user_id, None)
 
-def build_user_profile(user_id, interactions_path="data/processed/train.csv", items_path="data/processed/items.csv"):
+def build_user_profile(user_id, interactions_path=None, items_path=None):
     """Build user profile from historical interaction data"""
+    if interactions_path is None:
+        interactions_path = str(PROJECT_ROOT / "data" / "processed" / "train.csv")
+    if items_path is None:
+        items_path = str(PROJECT_ROOT / "data" / "processed" / "items.csv")
+    
     ratings = pd.read_csv(interactions_path)
     items = pd.read_csv(items_path)
     

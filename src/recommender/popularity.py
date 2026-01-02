@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 import joblib
+from pathlib import Path
+
+# Get project root directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 def get_popularity_recommendations(top_k=5):
     """
@@ -15,11 +19,11 @@ def get_popularity_recommendations(top_k=5):
     """
     try:
         # Load movies data
-        movies = joblib.load("embeddings/faiss_index/movies.pkl")
+        movies = joblib.load(str(PROJECT_ROOT / "embeddings" / "faiss_index" / "movies.pkl"))
         
         # Try to load interactions to compute popularity
         try:
-            interactions = pd.read_csv("data/raw/interactions.csv")
+            interactions = pd.read_csv(str(PROJECT_ROOT / "data" / "raw" / "interactions.csv"))
             
             # Calculate popularity score: count of interactions per movie
             popularity = interactions.groupby('movie_id').size().reset_index(name='interaction_count')

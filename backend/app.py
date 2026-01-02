@@ -1,9 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes.recommend import router
-from routes.chat import router as chat_router
-from routes.interact import router as interact_router
-from routes.search import router as search_router
+try:
+    from .routes.recommend import router
+    from .routes.chat import router as chat_router
+    from .routes.interact import router as interact_router
+    from .routes.search import router as search_router
+except ImportError:
+    from routes.recommend import router
+    from routes.chat import router as chat_router
+    from routes.interact import router as interact_router
+    from routes.search import router as search_router
 from dotenv import load_dotenv
 
 # Load environment variables from .env file

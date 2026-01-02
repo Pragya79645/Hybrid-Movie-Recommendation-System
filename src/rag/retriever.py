@@ -8,6 +8,10 @@ import joblib
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 from typing import List, Optional
+from pathlib import Path
+
+# Get project root directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # Lazy loading
 _model = None
@@ -25,14 +29,14 @@ def get_faiss_index():
     """Lazy load the FAISS index"""
     global _faiss_index
     if _faiss_index is None:
-        _faiss_index = faiss.read_index("embeddings/faiss_index/items.index")
+        _faiss_index = faiss.read_index(str(PROJECT_ROOT / "embeddings" / "faiss_index" / "items.index"))
     return _faiss_index
 
 def get_movies():
     """Lazy load the movies dataframe"""
     global _movies
     if _movies is None:
-        _movies = joblib.load("embeddings/faiss_index/movies.pkl")
+        _movies = joblib.load(str(PROJECT_ROOT / "embeddings" / "faiss_index" / "movies.pkl"))
     return _movies
 
 def retrieve_movies(
